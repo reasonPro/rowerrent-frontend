@@ -6,6 +6,18 @@ import { useLanguage } from "@/components/language-provider"
 export default function LocationSection() {
   const { language } = useLanguage()
 
+  // 👇 ВСТАВ СЮДИ СВОЇ КООРДИНАТИ (ті, що скопіював з Google Maps)
+  const lat = "52.244875" // Широта (перше число)
+  const lng = "20.993488" // Довгота (друге число)
+
+  // Формуємо посилання на основі координат
+  // q=... - ставить мітку точно в ці координати
+  // z=15 - масштаб (15 - вулиця, 18 - будинок)
+  const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&t=&z=16&ie=UTF8&iwloc=&output=embed`
+  
+  // Посилання для навігатора (на телефоні відкриє маршрут саме сюди)
+  const directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+
   const content = {
     pl: {
       title: "Miejsce Odbioru",
@@ -36,16 +48,16 @@ export default function LocationSection() {
 
         <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-xl bg-gray-200 group">
           
-          {/* 👇 ТУТ ТЕПЕР ЖИВА КАРТА */}
+          {/* Жива карта з точною міткою */}
           <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2443.467076628676!2d20.9930769!3d52.2461386!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecc669a869f01%3A0x7292275b2734c26!2sKarmelicka%203%2C%2000-155%20Warszawa%2C%20Poland!5e0!3m2!1spl!2spl!4v1700000000000!5m2!1spl!2spl" 
+            src={mapUrl}
             className="absolute inset-0 w-full h-full border-0 grayscale-[20%] hover:grayscale-0 transition-all duration-500"
             allowFullScreen={true} 
             loading="lazy" 
             referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
 
-          {/* Картка з адресою поверх карти */}
+          {/* Картка з адресою */}
           <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 bg-white p-6 rounded-xl shadow-lg max-w-xs transition-transform hover:scale-105 duration-300">
             <div className="flex items-start gap-4">
               <div className="bg-green-100 p-3 rounded-full text-green-600">
@@ -55,9 +67,9 @@ export default function LocationSection() {
                 <h3 className="font-bold text-gray-900 mb-1">RowerRent Point</h3>
                 <p className="text-gray-600 text-sm mb-4">ul. Karmelicka 3CF<br />00-155 Warszawa</p>
                 
-                {/* Кнопка відкриває реальний Google Maps */}
+                {/* Кнопка відкриває навігатор на точні координати */}
                 <a 
-                  href="https://www.google.com/maps/dir//ul.+Karmelicka+3,+00-155+Warszawa" 
+                  href={directionUrl}
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="md:hidden inline-block w-full text-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg transition-colors"

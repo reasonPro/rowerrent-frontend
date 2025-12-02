@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Loader2 } from "lucide-react"
+import { X, Calendar, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,11 +19,11 @@ interface BookingModalProps {
 export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPrivacy }: BookingModalProps) {
   const { language } = useLanguage()
   
-  // Словник (Fallback, якщо в провайдері чогось немає)
+  // Словник (Додав сюди переклади для Імені та Прізвища)
   const t = {
     pl: {
       title: "Rezerwacja",
-      priceLabel: "Do zapłaty",
+      priceLabel: "Do zapłaty (przy odbiorze)",
       bookBtn: "Zarezerwuj",
       successTitle: "Dziękujemy za rezerwację!",
       successDesc: "Skontaktujemy się z Tobą wkrótce.",
@@ -33,12 +33,15 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
       and: " i ",
       privacyLink: "Politykę Prywatności",
       termDay: "1 Dzień", termWeek: "Tydzień", termMonth: "Miesiąc",
+      firstName: "Imię",
+      lastName: "Nazwisko",
+      errName: "Minimum 2 znaki",
       errPhone: "Wprowadź poprawny numer telefonu",
       errEmail: "Wprowadź poprawny adres email"
     },
     ua: {
       title: "Бронювання",
-      priceLabel: "До оплати",
+      priceLabel: "До оплати (при отриманні)",
       bookBtn: "Забронювати",
       successTitle: "Дякуємо за бронювання!",
       successDesc: "Ми зв'яжемося з вами найближчим часом.",
@@ -48,12 +51,15 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
       and: " і ",
       privacyLink: "Політику конфіденційності",
       termDay: "1 День", termWeek: "Тиждень", termMonth: "Місяць",
+      firstName: "Ім'я",
+      lastName: "Прізвище",
+      errName: "Мінімум 2 символи",
       errPhone: "Введіть коректний номер телефону",
       errEmail: "Введіть коректний email"
     },
     en: {
       title: "Booking",
-      priceLabel: "Total Price",
+      priceLabel: "Total (pay on pickup)",
       bookBtn: "Book Now",
       successTitle: "Booking Successful!",
       successDesc: "We will contact you shortly.",
@@ -63,6 +69,9 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
       and: " and ",
       privacyLink: "Privacy Policy",
       termDay: "1 Day", termWeek: "Week", termMonth: "Month",
+      firstName: "First Name",
+      lastName: "Last Name",
+      errName: "Minimum 2 characters",
       errPhone: "Enter a valid phone number",
       errEmail: "Enter a valid email"
     }
@@ -73,10 +82,19 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
   const [isSuccess, setIsSuccess] = useState(false)
   const [selectedTerm, setSelectedTerm] = useState<"day" | "week" | "month">("day")
   
-  // Стани для полів і помилок
+  // Стани для полів
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
-  const [errors, setErrors] = useState<{phone?: string, email?: string}>({})
+  
+  // Стан помилок
+  const [errors, setErrors] = useState<{
+    firstName?: string, 
+    lastName?: string, 
+    phone?: string, 
+    email?: string
+  }>({})
 
   const prices = { day: 50, week: 180, month: 720 }
 
@@ -84,6 +102,9 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
     if (isOpen) {
       setIsSuccess(false)
       setErrors({})
+      // Очищаємо поля при відкритті
+      setFirstName("")
+      setLastName("")
       setPhone("")
       setEmail("")
       setIsTermsAccepted(false)
@@ -92,17 +113,29 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
 
   // Функція валідації
   const validateForm = () => {
-    const newErrors: {phone?: string, email?: string} = {}
+    const newErrors: {firstName?: string, lastName?: string, phone?: string, email?: string} = {}
     let isValid = true
 
-    // Проста перевірка email (наявність @ і крапки)
+    // Валідація Ім'я
+    if (firstName.trim().length < 2) {
+      newErrors.firstName = t.errName
+      isValid = false
+    }
+
+    // Валідація Прізвища
+    if (lastName.trim().length < 2) {
+      newErrors.lastName = t.errName
+      isValid = false
+    }
+
+    // Перевірка email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       newErrors.email = t.errEmail
       isValid = false
     }
 
-    // Перевірка телефону (цифри, +, -, пробіли, мінімум 9 символів)
+    // Перевірка телефону
     const phoneRegex = /^[\d\+\-\s]{9,}$/
     if (!phoneRegex.test(phone)) {
       newErrors.phone = t.errPhone
@@ -116,7 +149,7 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateForm()) return // Якщо є помилки - стоп
+    if (!validateForm()) return
 
     setIsLoading(true)
     await new Promise((resolve) => setTimeout(resolve, 1500))
@@ -177,6 +210,32 @@ export default function BookingModal({ isOpen, onClose, onOpenTerms, onOpenPriva
                         {opt === "day" ? t.termDay : opt === "week" ? t.termWeek : t.termMonth}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                {/* Ім'я та Прізвище (НОВЕ) */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className={errors.firstName ? "text-red-500" : ""}>{t.firstName}</Label>
+                    <Input 
+                      placeholder={t.firstName}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className={errors.firstName ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      maxLength={50}
+                    />
+                    {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className={errors.lastName ? "text-red-500" : ""}>{t.lastName}</Label>
+                    <Input 
+                      placeholder={t.lastName}
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className={errors.lastName ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      maxLength={50}
+                    />
+                    {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
                   </div>
                 </div>
 
