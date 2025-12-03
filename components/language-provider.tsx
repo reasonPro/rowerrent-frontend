@@ -98,6 +98,9 @@ const translations: Record<Language, Record<string, string>> = {
     "faq.a13": "Możesz naprawić sam lub zadzwonić do nas na płatną usługę.",
     "contact.call": "Zadzwoń do nas",
     "contact.telegram": "Telegram",
+    "footer.contactTitle": "Kontakt",
+    "footer.about": "Nowoczesna wypożyczalnia rowerów elektrycznych. Szybko, wygodnie, ekologicznie i bez kaucji.",
+    "footer.navTitle": "Nawigacja",
     "footer.address": "ul. Karmelicka 3CF, Warszawa",
     "footer.phone": "+48 12 345 67 89",
     "footer.email": "info@rowerrent.pl",
@@ -229,6 +232,9 @@ const translations: Record<Language, Record<string, string>> = {
     "faq.a13": "Ви можете самостійно відремонтувати або зателефонуйте нам за платну послугу.",
     "contact.call": "Зателефонуйте нам",
     "contact.telegram": "Telegram",
+    "footer.about": "Сучасний прокат електровелосипедів. Швидко, зручно, екологічно та без застави.",
+    "footer.navTitle": "Навігація",
+    "footer.contactTitle": "Контакти",
     "footer.address": "вул. Кармеликька 3CF, Київ",
     "footer.phone": "+380 44 123 45 67",
     "footer.email": "info@rowerrent.ua",
@@ -358,6 +364,9 @@ const translations: Record<Language, Record<string, string>> = {
     "faq.a13": "You can fix it yourself or call us for a paid service.",
     "contact.call": "Call Us",
     "contact.telegram": "Telegram",
+    "footer.about": "Modern electric bike rental. Fast, convenient, eco-friendly and no deposit.",
+    "footer.navTitle": "Navigation",
+    "footer.contactTitle": "Contacts",
     "footer.address": "Karmelicka Street 3CF, Warsaw",
     "footer.phone": "+48 12 345 67 89",
     "footer.email": "info@rowerrent.com",
@@ -426,3 +435,4 @@ export function useLanguage() {
 }
 
 export default LanguageProvider
+

@@ -1,39 +1,42 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { MapPin } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
+import { supabase } from "@/lib/supabase"
 
 export default function LocationSection() {
   const { language } = useLanguage()
-
-  // 👇 ВСТАВ СЮДИ СВОЇ КООРДИНАТИ (ті, що скопіював з Google Maps)
-  const lat = "52.244875" // Широта (перше число)
-  const lng = "20.993488" // Довгота (друге число)
-
-  // Формуємо посилання на основі координат
-  // q=... - ставить мітку точно в ці координати
-  // z=15 - масштаб (15 - вулиця, 18 - будинок)
-  const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&t=&z=16&ie=UTF8&iwloc=&output=embed`
   
-  // Посилання для навігатора (на телефоні відкриє маршрут саме сюди)
+  const [address, setAddress] = useState("ul. Karmelicka 3CF, Warszawa")
+  
+  // 👇 СТАНИ ДЛЯ КООРДИНАТ (Дефолт - старі координати)
+  const [lat, setLat] = useState("52.244889")
+  const [lng, setLng] = useState("20.993500")
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const { data } = await supabase.from('settings').select('*')
+      if (data) {
+        const map: any = {}
+        data.forEach((item: any) => map[item.key] = item.value)
+        
+        if (map.shop_address) setAddress(map.shop_address)
+        if (map.shop_lat) setLat(map.shop_lat) // Встановлюємо нові з бази
+        if (map.shop_lng) setLng(map.shop_lng)
+      }
+    }
+    fetchSettings()
+  }, [])
+
+  // 👇 ФОРМУЄМО ПОСИЛАННЯ ДИНАМІЧНО
+  const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&t=&z=16&ie=UTF8&iwloc=&output=embed`
   const directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
 
   const content = {
-    pl: {
-      title: "Miejsce Odbioru",
-      subtitle: "Wygodna lokalizacja w centrum Warszawy",
-      button: "Wyznacz trasę"
-    },
-    ua: {
-      title: "Місце Оренди",
-      subtitle: "Зручна локація в центрі Варшави",
-      button: "Прокласти маршрут"
-    },
-    en: {
-      title: "Pickup Location",
-      subtitle: "Convenient location in Warsaw center",
-      button: "Get Directions"
-    }
+    pl: { title: "Miejsce Odbioru", subtitle: "Wygodna lokalizacja w centrum Warszawy", button: "Wyznacz trasę" },
+    ua: { title: "Місце Оренди", subtitle: "Зручна локація в центрі Варшави", button: "Прокласти маршрут" },
+    en: { title: "Pickup Location", subtitle: "Convenient location in Warsaw center", button: "Get Directions" }
   }
 
   const t = content[language] || content.pl
@@ -48,7 +51,6 @@ export default function LocationSection() {
 
         <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-xl bg-gray-200 group">
           
-          {/* Жива карта з точною міткою */}
           <iframe 
             src={mapUrl}
             className="absolute inset-0 w-full h-full border-0 grayscale-[20%] hover:grayscale-0 transition-all duration-500"
@@ -57,7 +59,6 @@ export default function LocationSection() {
             referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
 
-          {/* Картка з адресою */}
           <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 bg-white p-6 rounded-xl shadow-lg max-w-xs transition-transform hover:scale-105 duration-300">
             <div className="flex items-start gap-4">
               <div className="bg-green-100 p-3 rounded-full text-green-600">
@@ -65,9 +66,8 @@ export default function LocationSection() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900 mb-1">RowerRent Point</h3>
-                <p className="text-gray-600 text-sm mb-4">ul. Karmelicka 3CF<br />00-155 Warszawa</p>
+                <p className="text-gray-600 text-sm mb-4">{address}</p>
                 
-                {/* Кнопка відкриває навігатор на точні координати */}
                 <a 
                   href={directionUrl}
                   target="_blank" 

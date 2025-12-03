@@ -6,16 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox" // 👇 Додав чекбокс
 import { Loader2, Trash2, Plus, Pencil, X } from "lucide-react"
 
-// Тип для мультимовних полів (словник)
-interface MultiLangString {
-  pl: string
-  ua: string
-  en: string
-}
+interface MultiLangString { pl: string; ua: string; en: string }
 
-// Тип велосипеда з бази
 interface Bike {
   id: number
   name: string
@@ -25,7 +20,6 @@ interface Bike {
   price_day: number
   price_week: number
   price_month: number
-  // Ці поля тепер можуть бути або об'єктом (новий формат), або текстом (старий формат)
   motor: MultiLangString | string
   battery: MultiLangString | string
   wheels: MultiLangString | string
@@ -39,19 +33,17 @@ export default function AdminBikesPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
-  
-  // Активна мова для вводу
   const [inputLang, setInputLang] = useState<"pl" | "ua" | "en">("ua")
 
   // Стан форми
   const [name, setName] = useState("")
   const [category, setCategory] = useState("city")
   const [imageUrl, setImageUrl] = useState("")
+  const [isAvailable, setIsAvailable] = useState(true) // 👇 НОВЕ: Стан доступності
   const [priceDay, setPriceDay] = useState("")
   const [priceWeek, setPriceWeek] = useState("")
   const [priceMonth, setPriceMonth] = useState("")
   
-  // Мультимовні поля
   const [motor, setMotor] = useState<MultiLangString>(emptyLangField)
   const [battery, setBattery] = useState<MultiLangString>(emptyLangField)
   const [wheels, setWheels] = useState<MultiLangString>(emptyLangField)
@@ -67,16 +59,10 @@ export default function AdminBikesPage() {
     setLoading(false)
   }
 
-  // Оновлення конкретної мови в об'єкті
-  const updateLangField = (
-    setter: React.Dispatch<React.SetStateAction<MultiLangString>>, 
-    field: MultiLangString, 
-    val: string
-  ) => {
+  const updateLangField = (setter: any, field: any, val: string) => {
     setter({ ...field, [inputLang]: val })
   }
 
-  // Допоміжна функція: перетворює дані з бази (які можуть бути старого формату) в об'єкт
   const normalizeLangField = (field: any): MultiLangString => {
     if (typeof field === 'object' && field !== null) return field
     return { pl: String(field || ""), ua: String(field || ""), en: String(field || "") }
@@ -93,7 +79,7 @@ export default function AdminBikesPage() {
       price_week: Number(priceWeek),
       price_month: Number(priceMonth),
       motor, battery, wheels, brakes,
-      is_available: true
+      is_available: isAvailable // 👇 ВІДПРАВЛЯЄМО СТАТУС
     }
 
     const { error } = editingId 
@@ -110,7 +96,7 @@ export default function AdminBikesPage() {
 
   function resetForm() {
     setEditingId(null)
-    setName(""); setCategory("city"); setImageUrl(""); 
+    setName(""); setCategory("city"); setImageUrl(""); setIsAvailable(true);
     setPriceDay(""); setPriceWeek(""); setPriceMonth("");
     setMotor(emptyLangField); setBattery(emptyLangField); 
     setWheels(emptyLangField); setBrakes(emptyLangField);
@@ -121,16 +107,14 @@ export default function AdminBikesPage() {
     setName(bike.name)
     setCategory(bike.category)
     setImageUrl(bike.image_url)
+    setIsAvailable(bike.is_available) // 👇 ЗАВАНТАЖУЄМО СТАТУС
     setPriceDay(String(bike.price_day))
     setPriceWeek(String(bike.price_week))
     setPriceMonth(String(bike.price_month))
-    
-    // Нормалізуємо дані (щоб старі текстові записи не ламали форму)
     setMotor(normalizeLangField(bike.motor))
     setBattery(normalizeLangField(bike.battery))
     setWheels(normalizeLangField(bike.wheels))
     setBrakes(normalizeLangField(bike.brakes))
-    
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -160,6 +144,18 @@ export default function AdminBikesPage() {
                 </select>
               </div>
             </div>
+
+            {/* 👇 НОВЕ: ГАЛОЧКА ДОСТУПНОСТІ */}
+            <div className="flex items-center space-x-2 border p-4 rounded-md bg-gray-50">
+              <Checkbox 
+                id="isAvailable" 
+                checked={isAvailable} 
+                onCheckedChange={(checked: any) => setIsAvailable(checked)} 
+              />
+              <label htmlFor="isAvailable" className="text-sm font-medium leading-none cursor-pointer">
+                Велосипед доступний для оренди (Відображати кнопку "Забронювати")
+              </label>
+            </div>
             
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2"><Label>Ціна (День)</Label><Input type="number" value={priceDay} onChange={e => setPriceDay(e.target.value)} required /></div>
@@ -170,11 +166,10 @@ export default function AdminBikesPage() {
             <div className="space-y-2"><Label>Фото URL</Label><Input value={imageUrl} onChange={e => setImageUrl(e.target.value)} /></div>
 
             <hr />
-
-            {/* МУЛЬТИМОВНІ ХАРАКТЕРИСТИКИ */}
+            
             <div>
               <div className="flex gap-2 mb-4">
-                <span className="text-sm font-bold pt-2">Мова вводу:</span>
+                <span className="text-sm font-bold pt-2">Характеристики ({inputLang.toUpperCase()}):</span>
                 {(["ua", "pl", "en"] as const).map(lang => (
                   <button type="button" key={lang} onClick={() => setInputLang(lang)}
                     className={`px-3 py-1 rounded text-sm font-bold border ${inputLang === lang ? 'bg-green-600 text-white' : 'bg-white text-gray-700'}`}>
@@ -184,18 +179,10 @@ export default function AdminBikesPage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 bg-gray-50 p-4 rounded-xl border">
-                <div className="space-y-2"><Label>Двигун ({inputLang})</Label>
-                  <Input value={motor[inputLang]} onChange={e => updateLangField(setMotor, motor, e.target.value)} placeholder={inputLang === 'en' ? '250W' : '250Вт'} />
-                </div>
-                <div className="space-y-2"><Label>Акумулятор ({inputLang})</Label>
-                  <Input value={battery[inputLang]} onChange={e => updateLangField(setBattery, battery, e.target.value)} />
-                </div>
-                <div className="space-y-2"><Label>Колеса ({inputLang})</Label>
-                  <Input value={wheels[inputLang]} onChange={e => updateLangField(setWheels, wheels, e.target.value)} />
-                </div>
-                <div className="space-y-2"><Label>Гальма ({inputLang})</Label>
-                  <Input value={brakes[inputLang]} onChange={e => updateLangField(setBrakes, brakes, e.target.value)} />
-                </div>
+                <div className="space-y-2"><Label>Двигун</Label><Input value={motor[inputLang]} onChange={e => updateLangField(setMotor, motor, e.target.value)} /></div>
+                <div className="space-y-2"><Label>Акумулятор</Label><Input value={battery[inputLang]} onChange={e => updateLangField(setBattery, battery, e.target.value)} /></div>
+                <div className="space-y-2"><Label>Колеса</Label><Input value={wheels[inputLang]} onChange={e => updateLangField(setWheels, wheels, e.target.value)} /></div>
+                <div className="space-y-2"><Label>Гальма</Label><Input value={brakes[inputLang]} onChange={e => updateLangField(setBrakes, brakes, e.target.value)} /></div>
               </div>
             </div>
 
@@ -206,40 +193,33 @@ export default function AdminBikesPage() {
         </CardContent>
       </Card>
 
-      {/* 👇 СПИСОК ВЕЛОСИПЕДІВ (ПОВЕРНУВ ЙОГО!) */}
+      {/* СПИСОК */}
       <Card>
-        <CardHeader>
-          <CardTitle>Список ({bikes.length})</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Список ({bikes.length})</CardTitle></CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-green-600" /></div>
-          ) : (
+          {loading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin text-green-600" /></div> : (
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
               {bikes.map(bike => (
-                <div key={bike.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 bg-white shadow-sm">
+                <div key={bike.id} className={`flex items-center justify-between p-3 border rounded-lg ${bike.is_available ? 'bg-white' : 'bg-red-50 border-red-100'}`}>
                   <div className="flex items-center gap-4">
                     <img src={bike.image_url || "/placeholder.svg"} alt={bike.name} className="w-16 h-12 object-cover rounded bg-gray-100" />
                     <div>
                       <p className="font-bold text-gray-900">{bike.name}</p>
                       <div className="flex gap-2 text-xs text-gray-500 mt-1">
                         <span className="bg-gray-100 px-2 py-0.5 rounded capitalize">{bike.category}</span>
-                        <span className="font-medium text-green-700">{bike.price_day} zł/d</span>
+                        {/* Статус текстом */}
+                        <span className={`font-bold ${bike.is_available ? "text-green-600" : "text-red-600"}`}>
+                          {bike.is_available ? "Доступний" : "НЕДОСТУПНИЙ"}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  
                   <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(bike)}>
-                      <Pencil size={16} />
-                    </Button>
-                    <Button variant="destructive" size="icon" onClick={() => handleDelete(bike.id)}>
-                      <Trash2 size={16} />
-                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(bike)}><Pencil size={16} /></Button>
+                    <Button variant="destructive" size="icon" onClick={() => handleDelete(bike.id)}><Trash2 size={16} /></Button>
                   </div>
                 </div>
               ))}
-              {bikes.length === 0 && <p className="text-center text-gray-500 py-4">Список порожній</p>}
             </div>
           )}
         </CardContent>
