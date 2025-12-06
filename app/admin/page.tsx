@@ -1,77 +1,93 @@
+
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { supabase } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2, Lock } from "lucide-react"
 
 export default function AdminLoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  // ⚠️ МИ ПРИБРАЛИ useEffect, який перевіряв сесію автоматично.
+  // Це зупинить безкінечне перезавантаження сторінки.
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setLoading(true)
+    setError("")
 
-    // Simulate login delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    // Navigate to dashboard
-    router.push("/admin/dashboard")
+      if (error) throw error
+
+      if (data.session) {
+        // 👇 Успіх!
+        // Робимо жорсткий перехід, щоб оновити всі права доступу
+        window.location.href = "/admin/dashboard"
+      }
+    } catch (err: any) {
+      console.error(err)
+      setError("Невірний логін або пароль")
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-white p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">R</span>
+    <div className="w-full max-w-md p-4">
+      <Card>
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-green-100 rounded-full text-green-600">
+              <Lock size={32} />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">Admin Panel</CardTitle>
-          <CardDescription className="text-center">Sign in to manage RowerRent</CardDescription>
+          <CardTitle className="text-2xl">Вхід в Адмінку</CardTitle>
+          <CardDescription>Введіть дані адміністратора</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email (Login)</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@rowerrent.pl"
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="admin@rowerrent.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                required 
               />
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
+              <Label htmlFor="password">Пароль</Label>
+              <Input 
+                id="password" 
+                type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                required 
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
+
+            {error && (
+              <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-100 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin" /> : "Увійти"}
             </Button>
           </form>
         </CardContent>

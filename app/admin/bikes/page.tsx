@@ -195,28 +195,39 @@ export default function AdminBikesPage() {
 
       {/* СПИСОК */}
       <Card>
-        <CardHeader><CardTitle>Список ({bikes.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Список ({bikes.length})</CardTitle>
+        </CardHeader>
         <CardContent>
-          {loading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin text-green-600" /></div> : (
+          {loading ? (
+            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-green-600" /></div>
+          ) : (
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
               {bikes.map(bike => (
-                <div key={bike.id} className={`flex items-center justify-between p-3 border rounded-lg ${bike.is_available ? 'bg-white' : 'bg-red-50 border-red-100'}`}>
-                  <div className="flex items-center gap-4">
-                    <img src={bike.image_url || "/placeholder.svg"} alt={bike.name} className="w-16 h-12 object-cover rounded bg-gray-100" />
-                    <div>
-                      <p className="font-bold text-gray-900">{bike.name}</p>
-                      <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                // 👇 ТУТ ЗМІНИ ДЛЯ МОБІЛЬНОГО (flex-col)
+                <div key={bike.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4 ${bike.is_available ? 'bg-white' : 'bg-red-50 border-red-100'}`}>
+                  
+                  <div className="flex items-start sm:items-center gap-4 w-full">
+                    <img src={bike.image_url || "/placeholder.svg"} alt={bike.name} className="w-20 h-14 object-cover rounded bg-gray-100 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 truncate">{bike.name}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
                         <span className="bg-gray-100 px-2 py-0.5 rounded capitalize">{bike.category}</span>
-                        {/* Статус текстом */}
+                        <span className="font-medium text-green-700 whitespace-nowrap">{bike.price_day} zł/d</span>
                         <span className={`font-bold ${bike.is_available ? "text-green-600" : "text-red-600"}`}>
-                          {bike.is_available ? "Доступний" : "НЕДОСТУПНИЙ"}
+                          {bike.is_available ? "Доступний" : "Зайнятий"}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(bike)}><Pencil size={16} /></Button>
-                    <Button variant="destructive" size="icon" onClick={() => handleDelete(bike.id)}><Trash2 size={16} /></Button>
+                  
+                  <div className="flex items-center gap-2 justify-end w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(bike)} className="flex-1 sm:flex-none">
+                      <Pencil size={16} className="mr-2" /> Ред.
+                    </Button>
+                    <Button variant="destructive" size="icon" onClick={() => handleDelete(bike.id)}>
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
                 </div>
               ))}

@@ -1,133 +1,73 @@
 "use client"
 
-import { useRef, useEffect, useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion" // 👇 Використовуємо гарний компонент
 import { useLanguage } from "@/components/language-provider"
+import { supabase } from "@/lib/supabase"
 
 export default function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0)
   const { t } = useLanguage()
-  const [isVisible, setIsVisible] = useState(false)
-  const sectionRef = useRef<HTMLDivElement>(null)
+  
+  // 👇 Логіка адреси (Залишили)
+  const [address, setAddress] = useState("ul. Karmelicka 3CF, Warszawa")
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 },
-    )
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
+    async function fetchSettings() {
+      const { data } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'shop_address')
+        .single()
+      
+      if (data) setAddress(data.value)
     }
-    return () => observer.disconnect()
+    fetchSettings()
   }, [])
 
-  const faqItems = [
-    {
-      question: t("faq.q1"),
-      answer: t("faq.a1"),
-    },
-    {
-      question: t("faq.q2"),
-      answer: t("faq.a2"),
-    },
-    {
-      question: t("faq.q3"),
-      answer: t("faq.a3"),
-    },
-    {
-      question: t("faq.q4"),
-      answer: t("faq.a4"),
-    },
-    {
-      question: t("faq.q5"),
-      answer: t("faq.a5"),
-    },
-    {
-      question: t("faq.q6"),
-      answer: t("faq.a6"),
-    },
-    {
-      question: t("faq.q7"),
-      answer: t("faq.a7"),
-    },
-    {
-      question: t("faq.q8"),
-      answer: t("faq.a8"),
-    },
-    {
-      question: t("faq.q9"),
-      answer: t("faq.a9"),
-    },
-    {
-      question: t("faq.q10"),
-      answer: t("faq.a10"),
-    },
-    {
-      question: t("faq.q11"),
-      answer: t("faq.a11"),
-    },
-    {
-      question: t("faq.q12"),
-      answer: t("faq.a12"),
-    },
-    {
-      question: t("faq.q13"),
-      answer: t("faq.a13"),
-    },
+  const faqs = [
+    { q: "faq.q1", a: "faq.a1" },
+    { q: "faq.q2", a: "faq.a2" },
+    { q: "faq.q3", a: "faq.a3" },
+    { q: "faq.q4", a: "faq.a4" },
+    { q: "faq.q5", a: "faq.a5" },
+    { q: "faq.q6", a: "faq.a6" },
+    // 👇 Тут магія з підміною адреси
+    { q: "faq.q7", a: "faq.a7", dynamic: true }, 
+    { q: "faq.q8", a: "faq.a8" },
+    { q: "faq.q9", a: "faq.a9" },
+    { q: "faq.q10", a: "faq.a10" },
+    { q: "faq.q11", a: "faq.a11" },
+    { q: "faq.q12", a: "faq.a12" },
+    { q: "faq.q13", a: "faq.a13" },
   ]
 
   return (
-    <section
-      id="faq"
-      ref={sectionRef}
-      className="w-full bg-white py-20 lg:py-32"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? "translateY(0)" : "translateY(20px)",
-        transition: "all 0.8s ease-out",
-      }}
-    >
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 text-center">
-          <h2 className="text-balance text-4xl font-bold text-foreground mb-4">{t("faq.title")}</h2>
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4 max-w-3xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t("faq.title")}</h2>
         </div>
+        
+        {/* 👇 Використовуємо компонент Accordion для красивих анімацій */}
+        <Accordion type="single" collapsible className="w-full">
+          {faqs.map((faq, index) => {
+            // Якщо це пункт з адресою - робимо заміну, якщо ні - просто переклад
+            const answerText = faq.dynamic 
+                ? t(faq.a).replace("{address}", address) 
+                : t(faq.a)
 
-        <div className="space-y-4">
-          {faqItems.map((item, index) => (
-            <div
-              key={index}
-              className="border border-border rounded-lg overflow-hidden bg-white hover:border-primary/30 transition-colors"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(10px)",
-                transition: `all 0.6s ease-out ${index * 0.05}s`,
-              }}
-            >
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left hover:bg-secondary transition-colors"
-              >
-                <span className="font-semibold text-foreground text-balance">{item.question}</span>
-                <ChevronDown
-                  size={20}
-                  className={`flex-shrink-0 text-primary transition-transform duration-300 ${
-                    openIndex === index ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {openIndex === index && (
-                <div className="border-t border-border px-6 py-4 bg-secondary/30">
-                  <p className="text-muted-foreground leading-relaxed">{item.answer}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            return (
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="text-left text-gray-900 font-medium hover:text-green-600">
+                  {t(faq.q)}
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-600 leading-relaxed">
+                  {answerText}
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
       </div>
     </section>
   )

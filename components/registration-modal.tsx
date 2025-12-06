@@ -1,14 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { X, Loader2 } from "lucide-react"
+import { X, Loader2, MailCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { motion, AnimatePresence } from "framer-motion"
 import { useLanguage } from "@/components/language-provider"
-import { useAuth } from "@/components/auth-provider" // 👇 Підключаємо наш хук
+import { useAuth } from "@/components/auth-provider"
 
 interface RegistrationModalProps {
   isOpen: boolean
@@ -18,8 +18,8 @@ interface RegistrationModalProps {
 }
 
 export default function RegistrationModal({ isOpen, onClose, onOpenTerms, onOpenPrivacy }: RegistrationModalProps) {
-  const { t } = useLanguage()
-  const { register } = useAuth() // 👇 Беремо функцію реєстрації
+  const { t } = useLanguage() // Використовуємо переклади
+  const { register } = useAuth()
   
   const [isLoading, setIsLoading] = useState(false)
   const [isTermsAccepted, setIsTermsAccepted] = useState(false)
@@ -45,16 +45,27 @@ export default function RegistrationModal({ isOpen, onClose, onOpenTerms, onOpen
     setIsLoading(true)
 
     try {
-      // 👇 ВІДПРАВЛЯЄМО ДАНІ В SUPABASE
-      await register(formData.email, formData.password, {
+      const result = await register(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone
       })
+
+      // Якщо юзер є, але ідентифікаторів нема - дублікат
+      if (result && result.user && result.user.identities && result.user.identities.length === 0) {
+         setErrorMessage(t("registration.errorEmailExists")) // 👈 ВИКОРИСТОВУЄМО ПЕРЕКЛАД
+         setIsLoading(false)
+         return
+      }
+
       setIsSuccess(true)
     } catch (error: any) {
       console.error(error)
-      setErrorMessage("Помилка реєстрації. Можливо, такий email вже існує.")
+      if (error.message.includes("already registered") || error.message.includes("unique constraint")) {
+         setErrorMessage(t("registration.errorEmailExists")) // 👈 ВИКОРИСТОВУЄМО ПЕРЕКЛАД
+      } else {
+         setErrorMessage(t("registration.errorGeneric") || "Error") // 👈 ВИКОРИСТОВУЄМО ПЕРЕКЛАД
+      }
     } finally {
       setIsLoading(false)
     }
@@ -75,10 +86,14 @@ export default function RegistrationModal({ isOpen, onClose, onOpenTerms, onOpen
           <div className="p-6">
             {isSuccess ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✓</div>
+                <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MailCheck size={32} />
+                </div>
                 <h3 className="text-lg font-bold mb-2">{t("registration.successTitle")}</h3>
-                <p className="text-gray-600 mb-6">{t("registration.successMessage")}</p>
-                <Button onClick={onClose} className="w-full bg-green-600 text-white">{t("registration.close")}</Button>
+                <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+                  {t("registration.successMessage")}
+                </p>
+                <Button onClick={onClose} className="w-full bg-green-600 hover:bg-green-700 text-white">{t("registration.close")}</Button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,7 +118,7 @@ export default function RegistrationModal({ isOpen, onClose, onOpenTerms, onOpen
                   </label>
                 </div>
 
-                {errorMessage && <p className="text-red-500 text-sm text-center">{errorMessage}</p>}
+                {errorMessage && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-100">{errorMessage}</div>}
 
                 <Button type="submit" className="w-full bg-green-600 text-white" disabled={!isTermsAccepted || isLoading}>
                   {isLoading ? <Loader2 className="animate-spin" /> : t("registration.submit")}

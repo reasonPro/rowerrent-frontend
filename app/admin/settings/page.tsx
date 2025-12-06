@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/lib/supabase"
 import { Loader2, Save } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 
 interface MultiLangText {
   pl: string
@@ -25,10 +26,15 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState("")
   const [hours, setHours] = useState("")
   
-  // 👇 НОВЕ: Координати
+  // Координати
   const [lat, setLat] = useState("")
   const [lng, setLng] = useState("")
   
+  // Головна сторінка (Hero)
+  const [heroStatus, setHeroStatus] = useState(true)
+  const [heroBg, setHeroBg] = useState("") // 👇 НОВЕ: Фон
+  const [heroBike, setHeroBike] = useState("") // 👇 НОВЕ: Велосипед
+
   // Соцмережі
   const [instagram, setInstagram] = useState("")
   const [telegram, setTelegram] = useState("")
@@ -38,7 +44,6 @@ export default function SettingsPage() {
   const [terms, setTerms] = useState<MultiLangText>(emptyLangText)
   const [privacy, setPrivacy] = useState<MultiLangText>(emptyLangText)
   const [docLang, setDocLang] = useState<"pl" | "ua" | "en">("ua")
-  const [heroStatus, setHeroStatus] = useState(true)
 
   useEffect(() => {
     fetchSettings()
@@ -55,15 +60,16 @@ export default function SettingsPage() {
       setAddress(map.shop_address || "")
       setPhone(map.contact_phone || "")
       setHours(map.opening_hours || "")
-      
-      // 👇 Завантажуємо координати
       setLat(map.shop_lat || "52.244889")
       setLng(map.shop_lng || "20.993500")
+      
+      setHeroStatus(map.hero_status === 'true')
+      setHeroBg(map.hero_bg_image || "/bicycle-in-nature-scenic-landscape.jpg") // 👇
+      setHeroBike(map.hero_bike_image || "/modern-bicycle-rental-bike-isolated.jpg") // 👇
       
       setInstagram(map.social_instagram || "")
       setTelegram(map.social_telegram || "")
       setWhatsapp(map.social_whatsapp || "")
-      setHeroStatus(map.hero_status === 'true')
 
       try {
         if (map.legal_terms) setTerms(JSON.parse(map.legal_terms))
@@ -82,14 +88,17 @@ export default function SettingsPage() {
       { key: 'shop_address', value: address },
       { key: 'contact_phone', value: phone },
       { key: 'opening_hours', value: hours },
-      // 👇 Зберігаємо координати
       { key: 'shop_lat', value: lat },
       { key: 'shop_lng', value: lng },
+      
+      { key: 'hero_status', value: String(heroStatus) },
+      { key: 'hero_bg_image', value: heroBg }, // 👇
+      { key: 'hero_bike_image', value: heroBike }, // 👇
       
       { key: 'social_instagram', value: instagram },
       { key: 'social_telegram', value: telegram },
       { key: 'social_whatsapp', value: whatsapp },
-      { key: 'hero_status', value: String(heroStatus) },
+      
       { key: 'legal_terms', value: JSON.stringify(terms) },
       { key: 'legal_privacy', value: JSON.stringify(privacy) }
     ]
@@ -117,18 +126,44 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      {/* ГОЛОВНА */}
+      {/* 1. ГОЛОВНА СТОРІНКА (Оновлено) */}
       <Card>
-        <CardHeader><CardTitle>Головна сторінка</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 p-4 border rounded-lg bg-gray-50">
-            <input type="checkbox" checked={heroStatus} onChange={(e) => setHeroStatus(e.target.checked)} className="w-5 h-5 accent-green-600 cursor-pointer" />
-            <span className="font-medium">Статус "Доступні велосипеди" на банері</span>
+        <CardHeader>
+          <CardTitle>Головний Банер (Hero)</CardTitle>
+          <CardDescription>Змініть зображення та статус на головній сторінці.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          
+          <div className="flex items-center gap-4 p-4 border rounded-lg bg-gray-50">
+            <Switch checked={heroStatus} onCheckedChange={setHeroStatus} />
+            <span className="font-medium">Статус "Доступні велосипеди" (Зелений бейдж)</span>
           </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Велике фонове фото (URL)</Label>
+              <Input value={heroBg} onChange={e => setHeroBg(e.target.value)} placeholder="/image.jpg або https://..." />
+            </div>
+            <div className="space-y-2">
+              <Label>Фото велосипеда (URL)</Label>
+              <Input value={heroBike} onChange={e => setHeroBike(e.target.value)} placeholder="/bike.jpg або https://..." />
+            </div>
+          </div>
+          
+          {/* Прев'ю для зручності */}
+          <div className="grid gap-4 md:grid-cols-2">
+             <div className="h-24 rounded-lg bg-gray-100 overflow-hidden border">
+                <img src={heroBg || "/placeholder.svg"} alt="Background Preview" className="w-full h-full object-cover opacity-80" />
+             </div>
+             <div className="h-24 rounded-lg bg-gray-100 overflow-hidden border flex items-center justify-center">
+                <img src={heroBike || "/placeholder.svg"} alt="Bike Preview" className="h-full object-contain" />
+             </div>
+          </div>
+
         </CardContent>
       </Card>
 
-      {/* КОНТАКТИ І КООРДИНАТИ */}
+      {/* 2. КОНТАКТИ І ЛОКАЦІЯ */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Контакти та Локація</CardTitle></CardHeader>
@@ -136,19 +171,10 @@ export default function SettingsPage() {
             <div className="space-y-2"><Label>Адреса</Label><Input value={address} onChange={e => setAddress(e.target.value)} /></div>
             <div className="space-y-2"><Label>Телефон</Label><Input value={phone} onChange={e => setPhone(e.target.value)} /></div>
             <div className="space-y-2"><Label>Графік</Label><Input value={hours} onChange={e => setHours(e.target.value)} /></div>
-            
-            {/* 👇 Поля для координат */}
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="space-y-2">
-                <Label>Широта (Lat)</Label>
-                <Input value={lat} onChange={e => setLat(e.target.value)} placeholder="52.24..." />
-              </div>
-              <div className="space-y-2">
-                <Label>Довгота (Lng)</Label>
-                <Input value={lng} onChange={e => setLng(e.target.value)} placeholder="20.99..." />
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Широта (Lat)</Label><Input value={lat} onChange={e => setLat(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Довгота (Lng)</Label><Input value={lng} onChange={e => setLng(e.target.value)} /></div>
             </div>
-            <p className="text-xs text-gray-500">Скопіюйте з Google Maps (правий клік на точку).</p>
           </CardContent>
         </Card>
 
@@ -162,7 +188,7 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      {/* ЮРИДИЧНІ ДОКУМЕНТИ */}
+      {/* 3. ДОКУМЕНТИ */}
       <Card>
         <CardHeader><CardTitle>Документи</CardTitle></CardHeader>
         <CardContent>
@@ -175,12 +201,12 @@ export default function SettingsPage() {
           </div>
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label className="text-green-700">Правила ({docLang.toUpperCase()})</Label>
-              <textarea className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm" value={terms[docLang]} onChange={e => updateDoc(setTerms, terms, e.target.value)} />
+              <Label>Правила ({docLang.toUpperCase()})</Label>
+              <textarea className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={terms[docLang]} onChange={e => updateDoc(setTerms, terms, e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label className="text-green-700">Політика ({docLang.toUpperCase()})</Label>
-              <textarea className="flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm" value={privacy[docLang]} onChange={e => updateDoc(setPrivacy, privacy, e.target.value)} />
+              <Label>Політика ({docLang.toUpperCase()})</Label>
+              <textarea className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={privacy[docLang]} onChange={e => updateDoc(setPrivacy, privacy, e.target.value)} />
             </div>
           </div>
         </CardContent>

@@ -10,23 +10,28 @@ export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLDivElement>(null)
   
-  // 👇 Стан для статусу
+  // Стани для динамічних даних
   const [isAvailable, setIsAvailable] = useState(true)
+  const [bgImage, setBgImage] = useState("/bicycle-in-nature-scenic-landscape.jpg")
+  const [bikeImage, setBikeImage] = useState("/modern-bicycle-rental-bike-isolated.jpg")
 
   useEffect(() => {
     setIsVisible(true)
-    fetchHeroStatus() // Питаємо базу при завантаженні
+    fetchHeroSettings()
   }, [])
 
-  async function fetchHeroStatus() {
+  async function fetchHeroSettings() {
     const { data } = await supabase
       .from('settings')
-      .select('value')
-      .eq('key', 'hero_status')
-      .single()
+      .select('*')
+      .in('key', ['hero_status', 'hero_bg_image', 'hero_bike_image'])
     
     if (data) {
-      setIsAvailable(data.value === 'true')
+      data.forEach((item: any) => {
+        if (item.key === 'hero_status') setIsAvailable(item.value === 'true')
+        if (item.key === 'hero_bg_image' && item.value) setBgImage(item.value)
+        if (item.key === 'hero_bike_image' && item.value) setBikeImage(item.value)
+      })
     }
   }
 
@@ -40,10 +45,11 @@ export default function HeroSection() {
       ref={sectionRef}
       className="relative w-full min-h-screen flex items-center overflow-hidden bg-white pt-20"
     >
+      {/* Background Image (Динамічна) */}
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <img
-          src="/bicycle-in-nature-scenic-landscape.jpg"
-          alt="Bicycle in nature"
+          src={bgImage} // 👇 З БАЗИ
+          alt="Hero Background"
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-white/40"></div> 
@@ -54,31 +60,12 @@ export default function HeroSection() {
           
           <div className={`flex flex-col justify-center transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
             
-            {/* 👇 ДИНАМІЧНИЙ БЕЙДЖ */}
-            <div 
-              className={`mb-6 inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 border ${
-                isAvailable 
-                  ? "bg-green-100 border-green-200"  // Стиль, якщо доступні
-                  : "bg-red-100 border-red-200"      // Стиль, якщо немає
-              }`}
-            >
-              <span 
-                className={`h-2 w-2 rounded-full ${
-                  isAvailable 
-                    ? "bg-green-600 animate-pulse"   // Зелена цятка
-                    : "bg-red-600"                   // Червона цятка
-                }`}
-              ></span>
-              <span 
-                className={`text-sm font-medium ${
-                  isAvailable ? "text-green-800" : "text-red-800"
-                }`}
-              >
-                 {/* Якщо доступні - беремо ключ "hero.badge_available" ("Доступні велосипеди")
-                     Якщо ні - беремо "hero.badge_unavailable" ("Немає в наявності") */}
-                 {isAvailable 
-                   ? (t("hero.badge_available") || "Доступні велосипеди") 
-                   : (t("hero.badge_unavailable") || "Немає в наявності")}
+            <div className={`mb-6 inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 border ${
+              isAvailable ? "bg-green-100 border-green-200" : "bg-red-100 border-red-200"
+            }`}>
+              <span className={`h-2 w-2 rounded-full ${isAvailable ? "bg-green-600 animate-pulse" : "bg-red-600"}`}></span>
+              <span className={`text-sm font-medium ${isAvailable ? "text-green-800" : "text-red-800"}`}>
+                 {isAvailable ? t("hero.badge_available") : t("hero.badge_unavailable")}
               </span>
             </div>
 
@@ -95,8 +82,13 @@ export default function HeroSection() {
             </div>
           </div>
 
+          {/* Bike Image (Динамічна) */}
           <div className={`flex justify-center mt-8 lg:mt-0 transition-all duration-1000 delay-300 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-20"}`}>
-            <img src="/modern-bicycle-rental-bike-isolated.jpg" alt="Bike" className="w-full max-w-md drop-shadow-2xl" />
+            <img 
+              src={bikeImage} // 👇 З БАЗИ
+              alt="Hero Bike" 
+              className="w-full max-w-md drop-shadow-2xl" 
+            />
           </div>
         </div>
       </div>
