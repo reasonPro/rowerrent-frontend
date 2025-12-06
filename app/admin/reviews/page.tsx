@@ -86,7 +86,7 @@ export default function AdminReviewsPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Кнопка Опублікувати / Сховати */}
+                    {/* Кнопка Опублікуватимо / Сховати */}
                     <Button 
                       size="sm" 
                       variant={review.is_approved ? "outline" : "default"}
