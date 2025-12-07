@@ -5,7 +5,7 @@ import Header from "@/components/header"
 import HeroSection from "@/components/hero-section"
 import AdvantagesSection from "@/components/advantages-section"
 import HowItWorks from "@/components/how-it-works"
-import BikesCatalog, { Bike } from "@/components/bikes-catalog" // Імпортуємо тип Bike
+import BikesCatalog, { Bike } from "@/components/bikes-catalog"
 import ReviewsSection from "@/components/reviews-section"
 import FaqSection from "@/components/faq-section"
 import Footer from "@/components/footer"
@@ -18,14 +18,6 @@ import LegalModal from "@/components/legal-modal"
 import ReviewModal from "@/components/review-modal"
 import LocationSection from "@/components/location-section"
 
-interface Review {
-  name: string
-  content: string
-  rating: number
-  avatar: string
-  timestamp?: string
-}
-
 export default function Home() {
   const [isBookingOpen, setIsBookingOpen] = useState(false)
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false)
@@ -34,22 +26,11 @@ export default function Home() {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   
-  // 👇 Стан для вибраного велосипеда
   const [selectedBike, setSelectedBike] = useState<Bike | null>(null)
 
-  const [reviews, setReviews] = useState<Review[]>([
-    { name: "Jan Kowalski", content: "Świetna usługa!", rating: 5, avatar: "JK" },
-    { name: "Maria Nowak", content: "Polecam!", rating: 5, avatar: "MN" },
-  ])
-
-  const handleReviewSubmit = (comment: string, rating: number) => {
-    console.log(comment, rating)
-  }
-
-  // 👇 Обробник кліку "Забронювати"
   const handleBookClick = (bike: Bike) => {
-    setSelectedBike(bike) // Запам'ятовуємо велосипед
-    setIsBookingOpen(true) // Відкриваємо модалку
+    setSelectedBike(bike)
+    setIsBookingOpen(true)
   }
 
   return (
@@ -60,18 +41,15 @@ export default function Home() {
         <HeroSection />
         <AdvantagesSection />
         <HowItWorks />
-        
-        {/* Передаємо функцію, яка приймає велосипед */}
         <BikesCatalog onBookClick={handleBookClick} />
-        
         <LocationSection />
-        <ReviewsSection onLeaveReviewClick={() => setIsReviewOpen(true)} reviews={reviews} />
+        {/* 👇 ВИПРАВЛЕНО: Прибрали reviews={reviews} */}
+        <ReviewsSection onLeaveReviewClick={() => setIsReviewOpen(true)} />
         <FaqSection />
       </main>
 
       <Footer onTermsClick={() => setIsTermsOpen(true)} onPrivacyClick={() => setIsPrivacyOpen(true)} />
       
-      {/* Передаємо вибраний велосипед у модалку */}
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
@@ -82,7 +60,9 @@ export default function Home() {
       
       <RegistrationModal isOpen={isRegistrationOpen} onClose={() => setIsRegistrationOpen(false)} onOpenTerms={() => setIsTermsOpen(true)} onOpenPrivacy={() => setIsPrivacyOpen(true)} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      <ReviewModal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} onSubmit={handleReviewSubmit} />
+      {/* 👇 ВИПРАВЛЕНО: Прибрали onSubmit={handleReviewSubmit} */}
+      <ReviewModal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} />
+      
       <FloatingContactButton />
       <CookieBanner />
       <LegalModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} type="terms" />

@@ -7,7 +7,7 @@ import { Zap, Battery, Disc, Timer, AlertCircle } from "lucide-react"
 import SkeletonCard from "@/components/skeleton-card"
 import { supabase } from "@/lib/supabase"
 
-interface Bike {
+export interface Bike {
   id: number
   name: string
   category: string
