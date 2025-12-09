@@ -67,7 +67,7 @@ export default function Header({ onRegisterClick, onLoginClick }: HeaderProps) {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         
         <a href="#home" onClick={(e) => handleScrollTo(e, "home")} className="flex items-center gap-2">
-          <img src="/logo_temp.png" alt="Logo" className="h-[40px] w-[40px] object-contain" />
+          <img src="/logo.png" alt="Logo" className="h-[40px] w-[40px] object-contain" />
           <span className="text-xl font-bold text-gray-900">ReworRent</span>
         </a>
 
