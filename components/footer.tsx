@@ -52,7 +52,7 @@ export default function Footer({ onTermsClick, onPrivacyClick }: FooterProps) {
           {/* Колонка 1 */}
           <div className="space-y-4">
             <a href="#home" className="flex items-center gap-2 mb-6">
-              <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
+              <img src="/logo.png" alt="Logo" className="h-10 w-10 object-contain" />
               <span className="text-xl font-bold text-white">ReworRent</span>
             </a>
             <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
