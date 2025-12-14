@@ -9,7 +9,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "RowerRent - Wypożyczalnia Rowerów | Bike Rental",
+  title: "ReworRent - Wynajem Rowerów | Bike Rental",
   description:
     "Nowoczesna wypożyczalnia rowerów. Proste rezerwacje, brak kaucji, darmowe kaski. Modern bike rental service.",
   generator: "v0.app",
